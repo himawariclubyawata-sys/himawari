@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>八幡市バドミントンクラブ　ひまわり・コスモス・なでしこ</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav" aria-label="メインナビゲーション">
+      <a class="brand" href="#top" data-item-id="TOP-HEADER-BRAND">
+        <span class="brand-mark" data-item-id="TOP-HEADER-MARK" aria-hidden="true">🏸</span>
+        <span>八幡市バドミントンクラブ　ひまわり・コスモス・なでしこ</span>
+      </a>
+      <div class="nav-links">
+        <a href="#practice" data-item-id="TOP-NAV-PRACTICE">練習日</a>
+        <a href="#board" data-item-id="TOP-NAV-BOARD">遅刻連絡</a>
+        <a href="admin.html" data-item-id="TOP-NAV-ADMIN">管理者</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero" data-item-id="TOP-HERO-SECTION" aria-label="ひまわり・コスモス・なでしこ">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow" data-item-id="TOP-HERO-EYEBROW">八幡市バドミントンクラブ</p>
+          <h1 data-item-id="TOP-HERO-TITLE">ひまわり・コスモス・なでしこ</h1>
+          <p data-item-id="TOP-HERO-DESCRIPTION">
+            京都府八幡市で活動している地域のバドミントンサークル「ひまわり」「コスモス」「なでしこ」の3チームによる合同ホームページです。<br><br>
+            各チームは活動日や参加対象などが異なりますので、ご興味のある方は各チームの紹介をご覧ください。
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#board" data-item-id="TOP-HERO-BOARD-LINK"><span aria-hidden="true">+</span>遅刻連絡を書く</a>
+            <a class="button button-secondary" href="#practice" data-item-id="TOP-HERO-PRACTICE-LINK"><span aria-hidden="true">⌄</span>各チーム紹介を見る</a>
+            <a class="button button-secondary" href="admin.html" data-item-id="TOP-HERO-ADMIN-LINK"><span aria-hidden="true">⚙</span>管理者用ページ</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="practice" id="practice" data-item-id="TOP-CIRCLE-SECTION">
+      <div class="section-inner">
+        <div class="section-title">
+          <div>
+            <h2 data-item-id="TOP-CIRCLE-TITLE">各チーム紹介</h2>
+            <h3 class="section-subtitle" data-item-id="TOP-CIRCLE-SUBTITLE">サークル一覧</h3>
+          </div>
+          <p class="lead" data-item-id="TOP-CIRCLE-LEAD">各チームの案内を掲載します。</p>
+        </div>
+
+        <div class="circle-list" id="practiceGrid" data-item-id="TOP-CIRCLE-LIST"></div>
+      </div>
+    </section>
+
+    <section class="board" id="board" data-item-id="TOP-BOARD-SECTION">
+      <div class="section-inner">
+        <div class="section-title">
+          <h2 data-item-id="TOP-BOARD-TITLE">遅刻連絡掲示板</h2>
+          <p class="lead" data-item-id="TOP-BOARD-LEAD">練習に遅れるときに投稿ください。<br>毎月1日に2か月以上前の投稿を削除します。</p>
+        </div>
+
+        <div class="board-layout">
+          <form class="board-panel form-grid" id="postForm" data-item-id="TOP-BOARD-FORM">
+            <h3 class="form-title" data-item-id="TOP-BOARD-FORM-TITLE">投稿フォーム</h3>
+            <label>
+              名前
+              <input id="name" name="name" data-item-id="TOP-BOARD-NAME" type="text" autocomplete="name" placeholder="例：山田" required>
+            </label>
+            <label>
+              内容
+              <textarea id="message" name="message" data-item-id="TOP-BOARD-MESSAGE" placeholder="例：仕事で20分ほど遅れます。13:20頃に到着予定です。" required></textarea>
+            </label>
+            <label>
+              削除用パスワード
+              <input id="deletePassword" name="deletePassword" data-item-id="TOP-BOARD-DELETE-PASSWORD" type="password" autocomplete="new-password" placeholder="自分の投稿削除に使うパスワード" required>
+            </label>
+            <p class="board-status" id="boardStatus" data-item-id="TOP-BOARD-STATUS" role="status"></p>
+            <div class="board-actions">
+              <button class="button button-primary" data-item-id="TOP-BOARD-SUBMIT" type="submit"><span aria-hidden="true">+</span>投稿</button>
+            </div>
+          </form>
+
+          <div class="post-list-panel">
+            <ul class="post-list" id="postList" data-item-id="TOP-BOARD-POST-LIST" aria-live="polite"></ul>
+            <button class="button button-secondary load-more-posts" id="loadMorePosts" data-item-id="TOP-BOARD-POST-MORE" type="button" hidden>さらに表示</button>
+          </div>
+        </div>
+
+        <p class="backup-board" data-item-id="TOP-BOARD-BACKUP">
+          掲示板に不具合がある場合は
+          <a href="https://rara.jp/himawari/" target="_blank" rel="noopener">予備掲示板</a>
+          に投稿ください。
+        </p>
+      </div>
+    </section>
+
+    <section class="contact" id="contact" data-item-id="TOP-CONTACT-SECTION">
+      <div class="section-inner">
+        <div class="contact-box">
+          <div>
+            <h2 data-item-id="TOP-CONTACT-TITLE">問い合わせ</h2>
+            <p class="lead" data-item-id="TOP-CONTACT-DESCRIPTION">参加や見学についての問い合わせはメールでお願いします。</p>
+          </div>
+          <a class="button button-primary" data-item-id="TOP-CONTACT-MAIL" href="mailto:himawari.club.yawata@gmail.com"><span aria-hidden="true">@</span>メールする</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="section-inner">
+      <span>© 2026 八幡市バドミントンクラブ　ひまわり・コスモス・なでしこ</span>
+      <span>練習予定と遅刻連絡の共有ページです。</span>
+    </div>
+  </footer>
+
+  <script type="module" src="js/script.js"></script>
+</body>
+</html>

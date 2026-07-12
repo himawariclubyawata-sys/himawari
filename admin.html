@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理者ページ | 八幡市バドミントンクラブ</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="admin-page">
+  <header class="site-header">
+    <nav class="nav" aria-label="管理者ナビゲーション">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true">🏸</span>
+        <span>八幡市バドミントンクラブ　ひまわり・コスモス・なでしこ</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">トップページ</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="admin-hero">
+      <div class="section-inner">
+        <div class="section-title">
+          <h1>管理者ページ</h1>
+          <p class="lead">Firebase Authenticationでログインして、各チーム紹介と月ごとの練習予定を更新します。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <div class="section-inner admin-layout">
+        <form class="board-panel form-grid" id="loginForm">
+          <h2>管理者ログイン</h2>
+          <label>
+            メールアドレス
+            <input id="adminEmail" name="adminEmail" type="email" autocomplete="username" required>
+          </label>
+          <label>
+            パスワード
+            <input id="adminPassword" name="adminPassword" type="password" autocomplete="current-password" required>
+          </label>
+          <p class="board-status" id="loginStatus" role="status"></p>
+          <button class="button button-primary" type="submit">ログイン</button>
+        </form>
+
+        <div class="admin-editor" id="adminEditor" hidden>
+          <div class="admin-toolbar">
+            <div>
+              <h2>サークル管理</h2>
+              <p class="lead" id="adminUser"></p>
+            </div>
+            <div class="admin-toolbar-actions">
+              <button class="button button-secondary" type="button" id="addPractice">+ サークル</button>
+              <button class="button button-secondary" type="button" id="addPracticeDate">+ 月予定</button>
+              <button class="button button-secondary" type="button" id="runMonthlyProcess" data-item-id="ADMIN-MONTHLY-PROCESS-RUN">月次処理実行</button>
+              <button class="button button-primary" type="button" id="saveAll">保存</button>
+              <button class="button button-secondary" type="button" id="logoutButton">ログアウト</button>
+            </div>
+          </div>
+
+          <p class="board-status" id="adminStatus" role="status"></p>
+
+          <div class="admin-panel">
+            <div class="section-title compact-title">
+              <h2>月ごとの練習予定</h2>
+              <p class="lead">各サークルカードの横に表示されます。トップページでは今月分と翌月分を表示します。毎月1日に先月分の練習予定は削除されます。</p>
+            </div>
+            <div class="admin-practice-list" id="practiceDateEditorList"></div>
+          </div>
+
+          <div class="admin-panel">
+            <div class="section-title compact-title">
+              <h2>各チーム紹介</h2>
+              <p class="lead">トップページのサークルカードに表示されます。</p>
+            </div>
+            <div class="admin-practice-list" id="practiceEditorList"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>
