@@ -15,6 +15,7 @@
       </a>
       <div class="nav-links">
         <a href="#practice" data-item-id="TOP-NAV-PRACTICE">練習日</a>
+        <a href="#announcements" data-item-id="TOP-NAV-ANNOUNCEMENTS">全体連絡</a>
         <a href="#board" data-item-id="TOP-NAV-BOARD">遅刻連絡</a>
         <a href="admin.html" data-item-id="TOP-NAV-ADMIN">管理者</a>
       </div>
@@ -33,6 +34,7 @@
           </p>
           <div class="hero-actions">
             <a class="button button-primary" href="#board" data-item-id="TOP-HERO-BOARD-LINK"><span aria-hidden="true">+</span>遅刻連絡を書く</a>
+            <a class="button button-secondary" href="#announcements" data-item-id="TOP-HERO-ANNOUNCEMENTS-LINK"><span aria-hidden="true">📢</span>全体連絡を見る</a>
             <a class="button button-secondary" href="#practice" data-item-id="TOP-HERO-PRACTICE-LINK"><span aria-hidden="true">⌄</span>各チーム紹介を見る</a>
             <a class="button button-secondary" href="admin.html" data-item-id="TOP-HERO-ADMIN-LINK"><span aria-hidden="true">⚙</span>管理者用ページ</a>
           </div>
@@ -54,28 +56,76 @@
       </div>
     </section>
 
+    <section class="announcements" id="announcements" data-item-id="TOP-ANNOUNCEMENTS-SECTION">
+      <div class="section-inner">
+        <div class="section-title">
+          <h2 data-item-id="TOP-ANNOUNCEMENTS-TITLE">全体連絡</h2>
+          <p class="lead" data-item-id="TOP-ANNOUNCEMENTS-LEAD">各クラブからの全体連絡です。</p>
+        </div>
+
+        <div class="announcement-toolbar">
+          <button class="button button-secondary announcement-toggle" id="toggleAnnouncementForm" type="button">投稿フォームを開く</button>
+        </div>
+
+        <div class="board-layout">
+          <div class="announcement-form-panel" id="announcementFormPanel" hidden>
+            <form class="board-panel form-grid" id="announcementForm" data-item-id="TOP-ANNOUNCEMENTS-FORM">
+              <h3 class="form-title" data-item-id="TOP-ANNOUNCEMENTS-FORM-TITLE">全体連絡投稿フォーム</h3>
+              <label>
+                <span class="field-label">サークル名 <span class="field-requirement is-required">必須</span></span>
+                <select id="announcementName" name="announcementName" data-item-id="TOP-ANNOUNCEMENTS-NAME" required>
+                  <option value="">選択してください</option>
+                </select>
+              </label>
+              <label>
+                <span class="field-label">内容 <span class="field-requirement is-required">必須</span></span>
+                <textarea id="announcementMessage" name="announcementMessage" data-item-id="TOP-ANNOUNCEMENTS-MESSAGE" placeholder="例：本日19時から練習を行います。" required></textarea>
+              </label>
+              <label>
+                <span class="field-label">投稿用パス <span class="field-requirement is-required">必須</span></span>
+                <input id="announcementPassword" name="announcementPassword" data-item-id="TOP-ANNOUNCEMENTS-PASSWORD" type="password" autocomplete="current-password" placeholder="投稿に使うパス" required>
+              </label>
+              <p class="board-hint">管理者が設定した投稿用パスを入力してください。</p>
+              <p class="board-status" id="announcementStatus" data-item-id="TOP-ANNOUNCEMENTS-STATUS" role="status"></p>
+              <div class="board-actions">
+                <button class="button button-primary" data-item-id="TOP-ANNOUNCEMENTS-SUBMIT" type="submit"><span aria-hidden="true">+</span>投稿</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="post-list-panel">
+            <ul class="post-list" id="announcementList" data-item-id="TOP-ANNOUNCEMENTS-LIST" aria-live="polite"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="board" id="board" data-item-id="TOP-BOARD-SECTION">
       <div class="section-inner">
         <div class="section-title">
-          <h2 data-item-id="TOP-BOARD-TITLE">遅刻連絡掲示板</h2>
+          <h2 data-item-id="TOP-BOARD-TITLE">遅刻連絡</h2>
           <p class="lead" data-item-id="TOP-BOARD-LEAD">練習に遅れるときに投稿ください。<br>毎月1日に2か月以上前の投稿を削除します。</p>
+          <div class="hero-actions">
+            <a class="button button-secondary" href="manual/01-遅刻連絡の書き方.html" target="_blank" rel="noopener">遅刻連絡の書き方を見る</a>
+          </div>
         </div>
 
         <div class="board-layout">
           <form class="board-panel form-grid" id="postForm" data-item-id="TOP-BOARD-FORM">
             <h3 class="form-title" data-item-id="TOP-BOARD-FORM-TITLE">投稿フォーム</h3>
             <label>
-              名前
+              <span class="field-label">名前 <span class="field-requirement is-required">必須</span></span>
               <input id="name" name="name" data-item-id="TOP-BOARD-NAME" type="text" autocomplete="name" placeholder="例：山田" required>
             </label>
             <label>
-              内容
+              <span class="field-label">内容 <span class="field-requirement is-required">必須</span></span>
               <textarea id="message" name="message" data-item-id="TOP-BOARD-MESSAGE" placeholder="例：仕事で20分ほど遅れます。13:20頃に到着予定です。" required></textarea>
             </label>
             <label>
-              削除用パスワード
-              <input id="deletePassword" name="deletePassword" data-item-id="TOP-BOARD-DELETE-PASSWORD" type="password" autocomplete="new-password" placeholder="自分の投稿削除に使うパスワード" required>
+              <span class="field-label">削除用パス <span class="field-requirement is-optional">任意</span></span>
+              <input id="deletePassword" name="deletePassword" data-item-id="TOP-BOARD-DELETE-PASSWORD" type="password" autocomplete="new-password" placeholder="削除に使うパス">
             </label>
+            <p class="board-hint">未入力の場合は削除できません。</p>
             <p class="board-status" id="boardStatus" data-item-id="TOP-BOARD-STATUS" role="status"></p>
             <div class="board-actions">
               <button class="button button-primary" data-item-id="TOP-BOARD-SUBMIT" type="submit"><span aria-hidden="true">+</span>投稿</button>
@@ -96,14 +146,14 @@
       </div>
     </section>
 
-    <section class="contact" id="contact" data-item-id="TOP-CONTACT-SECTION">
+    <section class="contact" id="contact" data-item-id="TOP-CONTACT-SECTION" hidden>
       <div class="section-inner">
         <div class="contact-box">
           <div>
             <h2 data-item-id="TOP-CONTACT-TITLE">問い合わせ</h2>
             <p class="lead" data-item-id="TOP-CONTACT-DESCRIPTION">参加や見学についての問い合わせはメールでお願いします。</p>
           </div>
-          <a class="button button-primary" data-item-id="TOP-CONTACT-MAIL" href="mailto:himawari.club.yawata@gmail.com"><span aria-hidden="true">@</span>メールする</a>
+          <a class="button button-primary" id="contactMailLink" data-item-id="TOP-CONTACT-MAIL" href="mailto:himawari.club.yawata@gmail.com"><span aria-hidden="true">@</span>メールする</a>
         </div>
       </div>
     </section>

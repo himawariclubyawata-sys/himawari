@@ -20,6 +20,7 @@ import {
   writeBatch
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
+import { getSettingString, setSettingString, settingCodes } from "./settings.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -32,6 +33,8 @@ const loginStatus = document.querySelector("#loginStatus");
 const adminEditor = document.querySelector("#adminEditor");
 const practiceEditorList = document.querySelector("#practiceEditorList");
 const practiceDateEditorList = document.querySelector("#practiceDateEditorList");
+const contactFInput = document.querySelector("#contactFInput");
+const contactEmailInput = document.querySelector("#contactEmailInput");
 const adminStatus = document.querySelector("#adminStatus");
 const adminUser = document.querySelector("#adminUser");
 const addPracticeButton = document.querySelector("#addPractice");
@@ -43,6 +46,9 @@ const logoutButton = document.querySelector("#logoutButton");
 let practices = [];
 let practiceDates = [];
 let currentUser = null;
+let pendingFocus = null;
+const cleanupBatchSize = 100;
+const defaultContactEmail = "himawari.club.yawata@gmail.com";
 
 const escapeHtml = (value) => {
   return String(value ?? "").replace(/[&<>"']/g, (char) => {
@@ -94,6 +100,43 @@ const fetchPracticeDates = async () => {
       const dateB = `${b.year}${String(b.month).padStart(2, "0")}`;
       return dateB.localeCompare(dateA);
     });
+};
+
+const isEnabledSetting = (value) => {
+  return ["true", "1", "on"].includes(String(value).trim().toLowerCase());
+};
+
+const isEmailAddress = (value) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+};
+
+const loadContactSettings = async () => {
+  const [contactF, contactEmail] = await Promise.all([
+    getSettingString(db, settingCodes.contactF, "True"),
+    getSettingString(db, settingCodes.contactEmail, defaultContactEmail)
+  ]);
+
+  contactFInput.checked = isEnabledSetting(contactF);
+  contactEmailInput.value = contactEmail.trim();
+};
+
+const saveContactSettings = async () => {
+  await Promise.all([
+    setSettingString(db, settingCodes.contactF, contactFInput.checked ? "True" : "False"),
+    setSettingString(db, settingCodes.contactEmail, contactEmailInput.value.trim())
+  ]);
+};
+
+const readCookie = (key) => {
+  return document.cookie.split(";").map((cookie) => cookie.trim()).find((cookie) => cookie.startsWith(`${key}=`))?.split("=")[1] ?? "";
+};
+
+const writeCookie = (key, value) => {
+  document.cookie = `${key}=${encodeURIComponent(value)}; max-age=31536000; path=/; SameSite=Lax`;
+};
+
+const deleteCookie = (key) => {
+  document.cookie = `${key}=; max-age=0; path=/; SameSite=Lax`;
 };
 
 const savePractices = async () => {
@@ -196,35 +239,75 @@ const runMonthlyProcess = async () => {
   }
 
   const postCutoff = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-  const oldPostsQuery = query(collection(db, "posts"), where("createAt", "<", postCutoff), limit(100));
-  const oldPostsSnapshot = await getDocs(oldPostsQuery);
-
   const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-  const lastMonthPracticeDatesQuery = query(
+  const deleteAllMatching = async (buildQuery) => {
+    let deletedCount = 0;
+
+    while (true) {
+      const snapshot = await getDocs(buildQuery());
+      if (snapshot.empty) {
+        return deletedCount;
+      }
+
+      await Promise.all(snapshot.docs.map((document) => deleteDoc(document.ref)));
+      deletedCount += snapshot.size;
+      if (snapshot.size < cleanupBatchSize) {
+        return deletedCount;
+      }
+    }
+  };
+
+  const deletedPosts = await deleteAllMatching(() => query(
+    collection(db, "posts"),
+    where("createAt", "<", postCutoff),
+    limit(cleanupBatchSize)
+  ));
+  const deletedPracticeDates = await deleteAllMatching(() => query(
     collection(db, "practiceDate"),
     where("year", "==", lastMonth.getFullYear()),
     where("month", "==", lastMonth.getMonth() + 1),
-    limit(100)
-  );
-  const lastMonthPracticeDatesSnapshot = await getDocs(lastMonthPracticeDatesQuery);
+    limit(cleanupBatchSize)
+  ));
 
-  await Promise.all([
-    ...oldPostsSnapshot.docs.map((document) => deleteDoc(document.ref)),
-    ...lastMonthPracticeDatesSnapshot.docs.map((document) => deleteDoc(document.ref))
-  ]);
-
-  await setDoc(monthlyProcessRef, {
-    year: today.getFullYear(),
-    month: today.getMonth() + 1,
-    completeF: true,
-    completeAt: serverTimestamp()
-  });
+  try {
+    await setDoc(monthlyProcessRef, {
+      year: today.getFullYear(),
+      month: today.getMonth() + 1,
+      completeF: true,
+      completeAt: serverTimestamp()
+    });
+  } catch (error) {
+    const completedSnapshot = await getDoc(monthlyProcessRef);
+    if (!completedSnapshot.exists()) {
+      throw error;
+    }
+  }
 
   return {
     skipped: false,
-    deletedPosts: oldPostsSnapshot.size,
-    deletedPracticeDates: lastMonthPracticeDatesSnapshot.size
+    deletedPosts,
+    deletedPracticeDates
   };
+};
+
+const focusPendingField = () => {
+  if (!pendingFocus) {
+    return;
+  }
+
+  const { editor, field, index } = pendingFocus;
+  const target = document.querySelector(`[data-editor="${editor}"][data-field="${field}"][data-index="${index}"]`);
+
+  if (target) {
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+    target.classList.add("is-focused");
+    window.setTimeout(() => {
+      target.classList.remove("is-focused");
+    }, 1500);
+  }
+
+  pendingFocus = null;
 };
 
 const renderPracticeEditor = () => {
@@ -237,7 +320,7 @@ const renderPracticeEditor = () => {
 
   practices.forEach((practice, index) => {
     const card = document.createElement("article");
-    card.className = "admin-practice-card";
+    card.className = `admin-practice-card${pendingFocus?.editor === "practice" && pendingFocus?.index === index ? " is-new" : ""}`;
     card.innerHTML = `
       <div class="admin-card-header">
         <h3>サークル ${index + 1}</h3>
@@ -245,24 +328,24 @@ const renderPracticeEditor = () => {
       </div>
       <div class="admin-form-grid">
         <label>
-          サークル名
-          <input data-editor="practice" data-field="name" data-index="${index}" value="${escapeHtml(practice.name)}">
+          <span class="field-label">サークル名 <span class="field-requirement is-required">必須</span></span>
+          <input data-editor="practice" data-field="name" data-index="${index}" value="${escapeHtml(practice.name)}" required>
         </label>
         <label>
-          練習日
-          <input data-editor="practice" data-field="day" data-index="${index}" value="${escapeHtml(practice.day)}">
+          <span class="field-label">練習日 <span class="field-requirement is-required">必須</span></span>
+          <input data-editor="practice" data-field="day" data-index="${index}" value="${escapeHtml(practice.day)}" required>
         </label>
         <label>
-          時間
-          <input data-editor="practice" data-field="time" data-index="${index}" value="${escapeHtml(practice.time)}">
+          <span class="field-label">時間 <span class="field-requirement is-required">必須</span></span>
+          <input data-editor="practice" data-field="time" data-index="${index}" value="${escapeHtml(practice.time)}" required>
         </label>
         <label class="checkbox-label">
           <input type="checkbox" data-editor="practice" data-field="dispF" data-index="${index}" ${practice.dispF !== false ? "checked" : ""}>
-          トップページに表示する
+          <span class="field-label">トップページに表示する <span class="field-requirement is-optional">任意</span></span>
         </label>
         <label class="admin-wide">
-          説明
-          <textarea data-editor="practice" data-field="description" data-index="${index}">${escapeHtml(practice.description)}</textarea>
+          <span class="field-label">説明 <span class="field-requirement is-required">必須</span></span>
+          <textarea data-editor="practice" data-field="description" data-index="${index}" required>${escapeHtml(practice.description)}</textarea>
         </label>
       </div>
     `;
@@ -284,7 +367,7 @@ const renderPracticeDateEditor = () => {
 
   practiceDates.forEach((practiceDate, index) => {
     const card = document.createElement("article");
-    card.className = "admin-practice-card";
+    card.className = `admin-practice-card${pendingFocus?.editor === "practiceDate" && pendingFocus?.index === index ? " is-new" : ""}`;
     card.innerHTML = `
       <div class="admin-card-header">
         <h3>月予定 ${index + 1}</h3>
@@ -292,23 +375,23 @@ const renderPracticeDateEditor = () => {
       </div>
       <div class="admin-form-grid">
         <label>
-          年
-          <input data-editor="practiceDate" data-field="year" data-index="${index}" type="number" value="${escapeHtml(practiceDate.year)}">
+          <span class="field-label">年 <span class="field-requirement is-required">必須</span></span>
+          <input data-editor="practiceDate" data-field="year" data-index="${index}" type="number" value="${escapeHtml(practiceDate.year)}" required>
         </label>
         <label>
-          月
-          <input data-editor="practiceDate" data-field="month" data-index="${index}" type="number" min="1" max="12" value="${escapeHtml(practiceDate.month)}">
+          <span class="field-label">月 <span class="field-requirement is-required">必須</span></span>
+          <input data-editor="practiceDate" data-field="month" data-index="${index}" type="number" min="1" max="12" value="${escapeHtml(practiceDate.month)}" required>
         </label>
         <label class="admin-wide">
-          対象サークル
-          <select data-editor="practiceDate" data-field="practiceId" data-index="${index}">
+          <span class="field-label">対象サークル <span class="field-requirement is-required">必須</span></span>
+          <select data-editor="practiceDate" data-field="practiceId" data-index="${index}" required>
             <option value="">選択してください</option>
             ${practiceOptions}
           </select>
         </label>
         <label class="admin-wide">
-          予定本文
-          <textarea data-editor="practiceDate" data-field="date" data-index="${index}">${escapeHtml(practiceDate.date)}</textarea>
+          <span class="field-label">予定本文 <span class="field-requirement is-required">必須</span></span>
+          <textarea data-editor="practiceDate" data-field="date" data-index="${index}" required>${escapeHtml(practiceDate.date)}</textarea>
         </label>
       </div>
     `;
@@ -322,12 +405,18 @@ const renderPracticeDateEditor = () => {
 const renderEditor = () => {
   renderPracticeEditor();
   renderPracticeDateEditor();
+  window.requestAnimationFrame(() => {
+    focusPendingField();
+  });
 };
 
 const openEditor = async (user) => {
   currentUser = user;
   practices = await fetchPractices();
-  practiceDates = await fetchPracticeDates();
+  [practiceDates] = await Promise.all([
+    fetchPracticeDates(),
+    loadContactSettings()
+  ]);
   loginForm.hidden = true;
   adminEditor.hidden = false;
   adminUser.textContent = `${user.email} でログイン中`;
@@ -336,10 +425,13 @@ const openEditor = async (user) => {
 
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  const email = adminEmailInput.value.trim();
+  const password = adminPasswordInput.value;
   setLoginStatus("ログインしています...");
 
   try {
-    await signInWithEmailAndPassword(auth, adminEmailInput.value, adminPasswordInput.value);
+    writeCookie("himawari_admin_email", email);
+    await signInWithEmailAndPassword(auth, email, password);
     setLoginStatus("");
   } catch (error) {
     setLoginStatus("ログインできませんでした。メールアドレスとパスワードを確認してください。", true);
@@ -396,6 +488,7 @@ addPracticeButton.addEventListener("click", () => {
     description: "",
     dispF: true
   });
+  pendingFocus = { editor: "practice", field: "name", index: practices.length - 1 };
   renderEditor();
 });
 
@@ -407,10 +500,18 @@ addPracticeDateButton.addEventListener("click", () => {
     practiceId: "",
     year: ""
   });
-  renderPracticeDateEditor();
+  pendingFocus = { editor: "practiceDate", field: "year", index: practiceDates.length - 1 };
+  renderEditor();
 });
 
 saveAllButton.addEventListener("click", async () => {
+  const contactEmail = contactEmailInput.value.trim();
+  if ((contactFInput.checked || contactEmail) && !isEmailAddress(contactEmail)) {
+    setAdminStatus("問い合わせを表示する場合は、正しいメールアドレスを入力してください。", true);
+    contactEmailInput.focus();
+    return;
+  }
+
   if (!validatePractices()) {
     setAdminStatus("サークルは、サークル名・練習日・時間・説明を入力してください。", true);
     return;
@@ -425,6 +526,7 @@ saveAllButton.addEventListener("click", async () => {
   saveAllButton.disabled = true;
 
   try {
+    await saveContactSettings();
     await savePractices();
     await savePracticeDates();
     practices = await fetchPractices();
@@ -462,6 +564,20 @@ runMonthlyProcessButton.addEventListener("click", async () => {
 logoutButton.addEventListener("click", async () => {
   await signOut(auth);
 });
+
+const restoreAdminLoginForm = () => {
+  deleteCookie("himawari_admin_password");
+
+  if (adminEmailInput) {
+    const savedEmail = decodeURIComponent(readCookie("himawari_admin_email"));
+    if (savedEmail) {
+      adminEmailInput.value = savedEmail;
+    }
+  }
+
+};
+
+restoreAdminLoginForm();
 
 onAuthStateChanged(auth, (user) => {
   if (user) {

@@ -187,15 +187,15 @@
     }
 
     section {
-      padding: 76px 0;
+      padding: 72px 0;
     }
 
     .section-title {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(240px, 430px);
-      gap: 32px;
+      gap: 24px;
       align-items: end;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
 
     h2 {
@@ -346,15 +346,19 @@
 
     .new-badge {
       width: fit-content;
+      height: 26px;
       display: inline-flex;
+      align-self: start;
       align-items: center;
-      min-height: 26px;
+      justify-content: center;
       padding: 0 9px;
       border-radius: 999px;
       background: #fff0ed;
       color: #a63b2f;
       font-size: 0.78rem;
       font-weight: 900;
+      line-height: 1;
+      white-space: nowrap;
     }
 
     .practice-card {
@@ -462,6 +466,29 @@
       text-align: center;
     }
 
+    .announcements {
+      background: linear-gradient(135deg, #f7fdf9 0%, #eef7f2 100%);
+      border-top: 1px solid rgba(31, 138, 112, 0.12);
+      border-bottom: 1px solid rgba(31, 138, 112, 0.12);
+    }
+
+    .announcement-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .announcement-toggle {
+      width: fit-content;
+    }
+
+    .announcement-form-panel {
+      display: grid;
+    }
+
     .board {
       background: var(--mist);
     }
@@ -475,6 +502,8 @@
 
     .board-panel {
       padding: 22px;
+      border: 1px solid rgba(31, 138, 112, 0.14);
+      box-shadow: 0 10px 24px rgba(24, 33, 47, 0.06);
     }
 
     .form-grid {
@@ -488,6 +517,36 @@
       color: var(--ink);
       font-size: 0.92rem;
       font-weight: 800;
+    }
+
+    .field-label {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .field-requirement {
+      display: inline-flex;
+      align-items: center;
+      min-height: 20px;
+      padding: 0 7px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .field-requirement.is-required {
+      color: #a63b2f;
+      background: #fff0ed;
+      border: 1px solid #f0b4ac;
+    }
+
+    .field-requirement.is-optional {
+      color: #536574;
+      background: #eef3f5;
+      border: 1px solid #d3dde1;
     }
 
     input,
@@ -530,6 +589,13 @@
       color: var(--court-dark);
       font-size: 0.9rem;
       font-weight: 700;
+    }
+
+    .board-hint {
+      margin: -4px 0 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.5;
     }
 
     .board-status.is-error {
@@ -577,10 +643,11 @@
       display: grid;
       gap: 8px;
       padding: 18px;
-      border: 1px solid var(--line);
+      border: 1px solid rgba(216, 225, 229, 0.9);
       border-left: 6px solid var(--court);
-      border-radius: 8px;
+      border-radius: 10px;
       background: #fff;
+      box-shadow: 0 8px 18px rgba(24, 33, 47, 0.04);
     }
 
     .post-header {
@@ -735,6 +802,20 @@
       gap: 10px;
     }
 
+    .admin-toolbar-actions .button-secondary {
+      border: 1px solid rgba(31, 138, 112, 0.18);
+      background: #f5fcf8;
+      color: var(--court-dark);
+    }
+
+    .admin-toolbar-actions .button-secondary:hover {
+      background: #ebf8f1;
+    }
+
+    .admin-toolbar-actions .button-primary {
+      background: linear-gradient(135deg, var(--coral), #ff8b74);
+    }
+
     .admin-practice-list {
       display: grid;
       gap: 14px;
@@ -748,6 +829,20 @@
       border-radius: 8px;
       background: #fff;
       box-shadow: 0 12px 28px rgba(24, 33, 47, 0.08);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .admin-practice-card.is-new {
+      border-color: rgba(31, 138, 112, 0.45);
+      background: linear-gradient(135deg, #f8fffb 0%, #ffffff 100%);
+      box-shadow: 0 16px 34px rgba(31, 138, 112, 0.16);
+      transform: translateY(-1px);
+      animation: admin-card-pulse 1.6s ease;
+    }
+
+    .admin-practice-card .is-focused {
+      border-color: var(--court);
+      box-shadow: 0 0 0 3px rgba(31, 138, 112, 0.16);
     }
 
     .admin-card-header {
@@ -779,6 +874,15 @@
       gap: 10px;
       min-height: 46px;
       padding-top: 22px;
+    }
+
+    @keyframes admin-card-pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(31, 138, 112, 0.22);
+      }
+      100% {
+        box-shadow: 0 16px 34px rgba(31, 138, 112, 0.16);
+      }
     }
 
     @media (max-width: 820px) {
