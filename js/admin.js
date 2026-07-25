@@ -48,7 +48,6 @@ let practiceDates = [];
 let currentUser = null;
 let pendingFocus = null;
 const cleanupBatchSize = 100;
-const defaultContactEmail = "himawari.club.yawata@gmail.com";
 
 const escapeHtml = (value) => {
   return String(value ?? "").replace(/[&<>"']/g, (char) => {
@@ -80,7 +79,15 @@ const createId = () => {
 const fetchPractices = async () => {
   const snapshot = await getDocs(collection(db, "practices"));
   return snapshot.docs
-    .map((document) => ({ id: document.id, ...document.data() }))
+    .map((document) => {
+      const practice = document.data();
+      return {
+        id: document.id,
+        ...practice,
+        contactEmail: String(practice.contactEmail ?? ""),
+        contactF: practice.contactF === true
+      };
+    })
     .sort((a, b) => `${a.day}${a.time}${a.name}`.localeCompare(`${b.day}${b.time}${b.name}`, "ja"));
 };
 
@@ -102,29 +109,8 @@ const fetchPracticeDates = async () => {
     });
 };
 
-const isEnabledSetting = (value) => {
-  return ["true", "1", "on"].includes(String(value).trim().toLowerCase());
-};
-
 const isEmailAddress = (value) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-};
-
-const loadContactSettings = async () => {
-  const [contactF, contactEmail] = await Promise.all([
-    getSettingString(db, settingCodes.contactF, "True"),
-    getSettingString(db, settingCodes.contactEmail, defaultContactEmail)
-  ]);
-
-  contactFInput.checked = isEnabledSetting(contactF);
-  contactEmailInput.value = contactEmail.trim();
-};
-
-const saveContactSettings = async () => {
-  await Promise.all([
-    setSettingString(db, settingCodes.contactF, contactFInput.checked ? "True" : "False"),
-    setSettingString(db, settingCodes.contactEmail, contactEmailInput.value.trim())
-  ]);
 };
 
 const readCookie = (key) => {
@@ -160,6 +146,8 @@ const savePractices = async () => {
     batch.set(reference, {
       day: practice.day.trim(),
       description: practice.description.trim(),
+      contactEmail: String(practice.contactEmail ?? "").trim(),
+      contactF: Boolean(practice.contactF),
       dispF: Boolean(practice.dispF),
       name: practice.name.trim(),
       time: practice.time.trim(),
@@ -219,10 +207,12 @@ const validatePracticeDates = () => {
 
 const validatePractices = () => {
   return practices.every((practice) => {
-    return practice.name.trim()
+    const hasRequiredFields = practice.name.trim()
       && practice.day.trim()
       && practice.time.trim()
       && practice.description.trim();
+    const hasValidContact = !practice.contactF || isEmailAddress(String(practice.contactEmail ?? "").trim());
+    return hasRequiredFields && hasValidContact;
   });
 };
 
@@ -342,6 +332,14 @@ const renderPracticeEditor = () => {
         <label class="checkbox-label">
           <input type="checkbox" data-editor="practice" data-field="dispF" data-index="${index}" ${practice.dispF !== false ? "checked" : ""}>
           <span class="field-label">トップページに表示する <span class="field-requirement is-optional">任意</span></span>
+        </label>
+        <label>
+          <span class="field-label">問い合わせ先メールアドレス <span class="field-requirement is-optional">任意</span></span>
+          <input data-editor="practice" data-field="contactEmail" data-index="${index}" type="email" autocomplete="email" value="${escapeHtml(practice.contactEmail)}" placeholder="例：club@example.com">
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" data-editor="practice" data-field="contactF" data-index="${index}" ${practice.contactF === true ? "checked" : ""}>
+          <span class="field-label">問い合わせボタンを表示する <span class="field-requirement is-optional">任意</span></span>
         </label>
         <label class="admin-wide">
           <span class="field-label">説明 <span class="field-requirement is-required">必須</span></span>
@@ -486,6 +484,8 @@ addPracticeButton.addEventListener("click", () => {
     day: "",
     time: "",
     description: "",
+    contactEmail: "",
+    contactF: false,
     dispF: true
   });
   pendingFocus = { editor: "practice", field: "name", index: practices.length - 1 };
@@ -513,7 +513,7 @@ saveAllButton.addEventListener("click", async () => {
   }
 
   if (!validatePractices()) {
-    setAdminStatus("サークルは、サークル名・練習日・時間・説明を入力してください。", true);
+    setAdminStatus("サークルの必須項目を入力し、問い合わせボタンを表示する場合は正しいメールアドレスを設定してください。", true);
     return;
   }
 

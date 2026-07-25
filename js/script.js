@@ -35,8 +35,6 @@ const announcementStatus = document.querySelector("#announcementStatus");
 const nameInput = document.querySelector("#name");
 const announcementNameInput = document.querySelector("#announcementName");
 const announcementPasswordInput = document.querySelector("#announcementPassword");
-const contactSection = document.querySelector("#contact");
-const contactMailLink = document.querySelector("#contactMailLink");
 const boardNameCookieKey = "himawari_board_name";
 const announcementNameCookieKey = "himawari_announcement_name";
 const announcementPasswordCookieKey = "himawari_announcement_password";
@@ -217,38 +215,8 @@ const loadAnnouncementPassword = async () => {
   return (await getSettingString(db, settingCodes.announcementPassword)).trim();
 };
 
-const isEnabledSetting = (value) => {
-  return ["true", "1", "on"].includes(String(value).trim().toLowerCase());
-};
-
 const isEmailAddress = (value) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-};
-
-const loadContactSettings = async () => {
-  if (!contactSection || !contactMailLink) {
-    return;
-  }
-
-  try {
-    const [contactF, contactEmailValue] = await Promise.all([
-      getSettingString(db, settingCodes.contactF, "True"),
-      getSettingString(db, settingCodes.contactEmail, defaultContactEmail)
-    ]);
-    const contactEmail = contactEmailValue.trim();
-
-    if (!isEnabledSetting(contactF) || !isEmailAddress(contactEmail)) {
-      contactSection.hidden = true;
-      return;
-    }
-
-    contactMailLink.href = `mailto:${contactEmail}`;
-    contactSection.hidden = false;
-  } catch (error) {
-    console.error("問い合わせ設定を読み込めませんでした。", error);
-    contactMailLink.href = `mailto:${defaultContactEmail}`;
-    contactSection.hidden = false;
-  }
 };
 
 const getErrorMessage = (error, fallback) => {
@@ -307,6 +275,8 @@ const renderPractices = (practices) => {
 
   visiblePractices.forEach((practice, index) => {
     const color = accentColors[index % accentColors.length];
+    const contactEmail = String(practice.contactEmail ?? "").trim();
+    const showContact = practice.contactF === true && isEmailAddress(contactEmail);
     const row = document.createElement("article");
     row.className = "circle-row";
     row.dataset.itemId = "TOP-CIRCLE-ROW";
@@ -326,6 +296,7 @@ const renderPractices = (practices) => {
           </div>
         </dl>
         <p data-item-id="TOP-CIRCLE-DESCRIPTION">${escapeHtml(practice.description)}</p>
+        ${showContact ? `<a class="button button-primary circle-contact-button" data-item-id="TOP-CIRCLE-CONTACT" href="mailto:${escapeHtml(contactEmail)}"><span aria-hidden="true">@</span>問い合わせ</a>` : ""}
         <small data-item-id="TOP-CIRCLE-UPDATE">${escapeHtml(formatUpdateDate(practice.updateAt))}</small>
       </div>
       <div class="circle-schedule">
@@ -764,7 +735,6 @@ announcementList?.addEventListener("click", async (event) => {
 restoreBoardName();
 restoreAnnouncementInputs();
 void loadAnnouncementPassword();
-void loadContactSettings();
 subscribePractices();
 subscribePracticeDates();
 subscribePosts();

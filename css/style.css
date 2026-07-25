@@ -217,6 +217,10 @@
       color: var(--muted);
     }
 
+    #TOP-BOARD-LEAD-SPACE {
+      grid-row: span 2;
+    }
+
     .practice {
       background: var(--paper);
     }
@@ -270,6 +274,10 @@
       margin: 0;
       color: var(--muted);
       white-space: pre-wrap;
+    }
+
+    .circle-contact-button {
+      justify-self: start;
     }
 
     .circle-card small,

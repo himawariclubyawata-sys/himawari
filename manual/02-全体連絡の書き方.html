@@ -102,7 +102,17 @@
 <li>Firebaseの管理担当者がパスを変更した直後は、古いパスがブラウザに残っている場合があります。入力欄を消して新しいパスを入力します。</li>
 </ul>
 <h3 id="投稿用パスがまだ設定されていませんと表示される">「投稿用パスがまだ設定されていません」と表示される </h3>
+<<<<<<< HEAD
 <p>FirebaseコンソールのSettingsで、<code>Code</code>が<code>adminPass</code>の<code>setting</code>へ投稿用パスを設定する必要があります。ホームページ管理者へ連絡してください。</p>
+=======
+<p>ホームページ管理者へ連絡してください。Firebaseの管理担当者は、Firestoreの <code>settings</code> コレクションを次の順で確認します。</p>
+<ol>
+<li><code>Code</code> が <code>adminPass</code> のドキュメントを探します。</li>
+<li>すでにある場合は新規作成せず、そのドキュメントの <code>setting</code> に投稿用パスが設定されていることを確認します。</li>
+<li>ない場合だけ、自動IDでドキュメントを作成し、<code>Code</code> に <code>adminPass</code>、<code>setting</code> に投稿用パスを設定します。</li>
+</ol>
+<p><code>Code = adminPass</code> のドキュメントは複数作成しません。投稿用パスを変更する場合は、既存ドキュメントの <code>setting</code> を更新します。</p>
+>>>>>>> 4b441ae (初版　最終変更反映)
 <p><a href="%E6%93%8D%E4%BD%9C%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB.md">マニュアル一覧へ戻る</a></p>
 
       </div>
@@ -115,4 +125,8 @@
     
     
   
+<<<<<<< HEAD
     </body></html>
+=======
+    </body></html>
+>>>>>>> 4b441ae (初版　最終変更反映)
