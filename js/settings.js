@@ -1,27 +1,17 @@
 import {
-<<<<<<< HEAD
   addDoc,
-=======
->>>>>>> 4b441ae (初版　最終変更反映)
   collection,
   getDocs,
   limit,
   query,
-<<<<<<< HEAD
   setDoc,
-=======
->>>>>>> 4b441ae (初版　最終変更反映)
   where
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 export const settingCodes = Object.freeze({
-<<<<<<< HEAD
   announcementPassword: "adminPass",
   contactF: "ContactF",
   contactEmail: "MailAddress"
-=======
-  announcementPassword: "adminPass"
->>>>>>> 4b441ae (初版　最終変更反映)
 });
 
 export const getSettingString = async (db, settingCode, fallback = "") => {
@@ -41,7 +31,6 @@ export const getSettingString = async (db, settingCode, fallback = "") => {
 
   return setting;
 };
-<<<<<<< HEAD
 
 export const setSettingString = async (db, settingCode, value) => {
   const snapshot = await getDocs(query(
@@ -61,5 +50,3 @@ export const setSettingString = async (db, settingCode, value) => {
 
   await setDoc(snapshot.docs[0].ref, data);
 };
-=======
->>>>>>> 4b441ae (初版　最終変更反映)
