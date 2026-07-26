@@ -20,7 +20,6 @@ import {
   writeBatch
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
-import { getSettingString, setSettingString, settingCodes } from "./settings.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -33,8 +32,6 @@ const loginStatus = document.querySelector("#loginStatus");
 const adminEditor = document.querySelector("#adminEditor");
 const practiceEditorList = document.querySelector("#practiceEditorList");
 const practiceDateEditorList = document.querySelector("#practiceDateEditorList");
-const contactFInput = document.querySelector("#contactFInput");
-const contactEmailInput = document.querySelector("#contactEmailInput");
 const adminStatus = document.querySelector("#adminStatus");
 const adminUser = document.querySelector("#adminUser");
 const addPracticeButton = document.querySelector("#addPractice");
@@ -411,10 +408,7 @@ const renderEditor = () => {
 const openEditor = async (user) => {
   currentUser = user;
   practices = await fetchPractices();
-  [practiceDates] = await Promise.all([
-    fetchPracticeDates(),
-    loadContactSettings()
-  ]);
+  practiceDates = await fetchPracticeDates();
   loginForm.hidden = true;
   adminEditor.hidden = false;
   adminUser.textContent = `${user.email} でログイン中`;
@@ -432,7 +426,10 @@ loginForm.addEventListener("submit", async (event) => {
     await signInWithEmailAndPassword(auth, email, password);
     setLoginStatus("");
   } catch (error) {
-    setLoginStatus("ログインできませんでした。メールアドレスとパスワードを確認してください。", true);
+    console.error("管理者ログインに失敗しました。", error);
+    const errorCode = error?.code || "unknown-error";
+    const errorMessage = error?.message || "詳細情報がありません。";
+    setLoginStatus(`ログインできませんでした。(${errorCode}: ${errorMessage})`, true);
   }
 });
 
@@ -505,13 +502,6 @@ addPracticeDateButton.addEventListener("click", () => {
 });
 
 saveAllButton.addEventListener("click", async () => {
-  const contactEmail = contactEmailInput.value.trim();
-  if ((contactFInput.checked || contactEmail) && !isEmailAddress(contactEmail)) {
-    setAdminStatus("問い合わせを表示する場合は、正しいメールアドレスを入力してください。", true);
-    contactEmailInput.focus();
-    return;
-  }
-
   if (!validatePractices()) {
     setAdminStatus("サークルの必須項目を入力し、問い合わせボタンを表示する場合は正しいメールアドレスを設定してください。", true);
     return;
@@ -526,7 +516,6 @@ saveAllButton.addEventListener("click", async () => {
   saveAllButton.disabled = true;
 
   try {
-    await saveContactSettings();
     await savePractices();
     await savePracticeDates();
     practices = await fetchPractices();
