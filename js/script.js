@@ -24,14 +24,23 @@ const db = getFirestore(app);
 
 const form = document.querySelector("#postForm");
 const postList = document.querySelector("#postList");
-const loadMorePostsButton = document.querySelector("#loadMorePosts");
+const postPagination = document.querySelector("#postPagination");
+const postPrevPageButton = document.querySelector("#postPrevPage");
+const postNextPageButton = document.querySelector("#postNextPage");
+const postPageStatus = document.querySelector("#postPageStatus");
 const boardStatus = document.querySelector("#boardStatus");
 const practiceGrid = document.querySelector("#practiceGrid");
 const announcementForm = document.querySelector("#announcementForm");
 const announcementFormPanel = document.querySelector("#announcementFormPanel");
 const toggleAnnouncementFormButton = document.querySelector("#toggleAnnouncementForm");
 const announcementList = document.querySelector("#announcementList");
+const announcementPagination = document.querySelector("#announcementPagination");
+const announcementPrevPageButton = document.querySelector("#announcementPrevPage");
+const announcementNextPageButton = document.querySelector("#announcementNextPage");
+const announcementPageStatus = document.querySelector("#announcementPageStatus");
 const announcementStatus = document.querySelector("#announcementStatus");
+const latestAnnouncement = document.querySelector("#latestAnnouncement");
+const latestAnnouncementList = document.querySelector("#latestAnnouncementList");
 const nameInput = document.querySelector("#name");
 const announcementNameInput = document.querySelector("#announcementName");
 const announcementPasswordInput = document.querySelector("#announcementPassword");
@@ -46,9 +55,14 @@ let latestPracticeDates = [];
 let latestPractices = [];
 let latestPosts = [];
 let latestAnnouncements = [];
-let lastPostDocument = null;
-let hasMorePosts = false;
-const postsPageSize = 10;
+let postPages = [];
+let announcementPages = [];
+let latestHeaderAnnouncements = [];
+let currentPostPageIndex = 0;
+let currentAnnouncementPageIndex = 0;
+const listPageSize = 5;
+const latestAnnouncementLimit = 2;
+const latestAnnouncementDisplayMonths = 2;
 const defaultContactEmail = "himawari.club.yawata@gmail.com";
 
 const escapeHtml = (value) => {
@@ -96,6 +110,18 @@ const formatPostDate = (value) => {
     hour: "2-digit",
     minute: "2-digit"
   }).format(date);
+};
+
+const formatLatestAnnouncementDate = (announcement) => {
+  const date = toDate(announcement.updateAt ?? announcement.createAt);
+  if (!date) {
+    return "";
+  }
+
+  return `${new Intl.DateTimeFormat("ja-JP", {
+    month: "numeric",
+    day: "numeric"
+  }).format(date)}更新`;
 };
 
 const isNew = (value) => {
@@ -319,16 +345,22 @@ const renderEmptyPost = (message) => {
   postList.appendChild(empty);
 };
 
-const updateLoadMorePostsButton = () => {
-  loadMorePostsButton.hidden = !hasMorePosts;
-  loadMorePostsButton.disabled = false;
+const updatePostPagination = () => {
+  const currentPage = postPages[currentPostPageIndex];
+  const hasPreviousPage = currentPostPageIndex > 0;
+  const hasNextPage = Boolean(currentPage?.hasNextPage);
+
+  postPagination.hidden = !hasPreviousPage && !hasNextPage;
+  postPrevPageButton.disabled = !hasPreviousPage;
+  postNextPageButton.disabled = !hasNextPage;
+  postPageStatus.textContent = `${currentPostPageIndex + 1}ページ`;
 };
 
 const renderPosts = (posts) => {
   postList.innerHTML = "";
   if (posts.length === 0) {
     renderEmptyPost("遅刻連絡がある場合は、投稿フォームから投稿できます。");
-    updateLoadMorePostsButton();
+    updatePostPagination();
     return;
   }
 
@@ -347,7 +379,78 @@ const renderPosts = (posts) => {
     `;
     postList.appendChild(item);
   });
-  updateLoadMorePostsButton();
+  updatePostPagination();
+};
+
+const getAnnouncementSubject = (announcement) => {
+  const subject = String(announcement.subject ?? "").trim();
+  if (subject) {
+    return subject;
+  }
+
+  const message = String(announcement.message ?? "").trim().replace(/\s+/g, " ");
+  if (!message) {
+    return "件名なし";
+  }
+
+  return message.length > 30 ? `${message.slice(0, 30)}…` : message;
+};
+
+const getLatestAnnouncementCutoff = () => {
+  const today = new Date();
+  const cutoff = new Date(today.getFullYear(), today.getMonth() - latestAnnouncementDisplayMonths, 1);
+  const lastDay = new Date(cutoff.getFullYear(), cutoff.getMonth() + 1, 0).getDate();
+  cutoff.setDate(Math.min(today.getDate(), lastDay));
+  cutoff.setHours(0, 0, 0, 0);
+  return cutoff;
+};
+
+const renderLatestAnnouncements = (announcements) => {
+  if (!latestAnnouncement || !latestAnnouncementList) {
+    return;
+  }
+
+  latestAnnouncementList.innerHTML = "";
+
+  if (announcements.length === 0) {
+    latestAnnouncement.hidden = true;
+    return;
+  }
+
+  announcements.slice(0, latestAnnouncementLimit).forEach((announcement) => {
+    const item = document.createElement("li");
+    const link = document.createElement("a");
+    const icon = document.createElement("span");
+    const subject = document.createElement("span");
+    const updateDate = document.createElement("span");
+
+    link.href = "#announcements";
+    link.setAttribute("aria-label", `${getAnnouncementSubject(announcement)}の全体連絡を見る`);
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = "📢";
+    subject.className = "latest-announcement-subject";
+    subject.dataset.itemId = "TOP-LATEST-ANNOUNCEMENT-SUBJECT";
+    subject.textContent = getAnnouncementSubject(announcement);
+    updateDate.className = "latest-announcement-date";
+    updateDate.dataset.itemId = "TOP-LATEST-ANNOUNCEMENT-DATE";
+    updateDate.textContent = formatLatestAnnouncementDate(announcement);
+
+    link.append(icon, subject, updateDate);
+    item.appendChild(link);
+    latestAnnouncementList.appendChild(item);
+  });
+
+  latestAnnouncement.hidden = false;
+};
+
+const updateAnnouncementPagination = () => {
+  const currentPage = announcementPages[currentAnnouncementPageIndex];
+  const hasPreviousPage = currentAnnouncementPageIndex > 0;
+  const hasNextPage = Boolean(currentPage?.hasNextPage);
+  announcementPagination.hidden = !hasPreviousPage && !hasNextPage;
+  announcementPrevPageButton.disabled = !hasPreviousPage;
+  announcementNextPageButton.disabled = !hasNextPage;
+  announcementPageStatus.textContent = `${currentAnnouncementPageIndex + 1}ページ`;
 };
 
 const renderAnnouncements = (announcements) => {
@@ -356,6 +459,7 @@ const renderAnnouncements = (announcements) => {
   }
 
   announcementList.innerHTML = "";
+  renderLatestAnnouncements(latestHeaderAnnouncements);
 
   if (announcements.length === 0) {
     const empty = document.createElement("li");
@@ -367,6 +471,7 @@ const renderAnnouncements = (announcements) => {
       <p>全体連絡の投稿には投稿用パスが必要です。</p>
     `;
     announcementList.appendChild(empty);
+    updateAnnouncementPagination();
     return;
   }
 
@@ -376,8 +481,8 @@ const renderAnnouncements = (announcements) => {
     item.innerHTML = `
       <div class="post-header">
         <div>
-          <h3 class="post-title" data-item-id="TOP-ANNOUNCEMENTS-POST-NAME">${escapeHtml(announcement.name)} さん</h3>
-          <span class="post-time" data-item-id="TOP-ANNOUNCEMENTS-POST-TIME">${formatPostDate(announcement.createAt)} 投稿</span>
+          <h3 class="post-title" data-item-id="TOP-ANNOUNCEMENTS-POST-SUBJECT">${escapeHtml(getAnnouncementSubject(announcement))}</h3>
+          <span class="post-time" data-item-id="TOP-ANNOUNCEMENTS-POST-META">${escapeHtml(announcement.name)} さん・${formatPostDate(announcement.createAt)} 投稿</span>
         </div>
         <button class="post-delete" type="button" data-announcement-id="${escapeHtml(announcement.id)}">削除</button>
       </div>
@@ -385,6 +490,7 @@ const renderAnnouncements = (announcements) => {
     `;
     announcementList.appendChild(item);
   });
+  updateAnnouncementPagination();
 };
 
 const renderPracticeArea = () => {
@@ -420,49 +526,121 @@ const subscribePracticeDates = () => {
   );
 };
 
-const loadPosts = async ({ reset = false } = {}) => {
+const loadPosts = async ({ reset = false, pageIndex = currentPostPageIndex } = {}) => {
   if (reset) {
-    latestPosts = [];
-    lastPostDocument = null;
-    hasMorePosts = false;
+    postPages = [];
+    pageIndex = 0;
   }
 
-  loadMorePostsButton.disabled = true;
+  postPrevPageButton.disabled = true;
+  postNextPageButton.disabled = true;
+
+  const cachedPage = postPages[pageIndex];
+  if (cachedPage) {
+    currentPostPageIndex = pageIndex;
+    latestPosts = cachedPage.posts;
+    setStatus("");
+    renderPosts(latestPosts);
+    return;
+  }
+
   const queryParts = [
     collection(db, "posts"),
     orderBy("createAt", "desc"),
-    limit(postsPageSize + 1)
+    limit(listPageSize + 1)
   ];
 
-  if (lastPostDocument) {
-    queryParts.splice(2, 0, startAfter(lastPostDocument));
+  if (pageIndex > 0) {
+    const previousPage = postPages[pageIndex - 1];
+    if (!previousPage?.lastDocument) {
+      throw new Error("前ページの読み込み位置が見つかりません。");
+    }
+    queryParts.splice(2, 0, startAfter(previousPage.lastDocument));
   }
 
   const postsQuery = query(...queryParts);
   const snapshot = await getDocs(postsQuery);
-  const pageDocuments = snapshot.docs.slice(0, postsPageSize);
+  const pageDocuments = snapshot.docs.slice(0, listPageSize);
   const pagePosts = pageDocuments.map((document) => ({ id: document.id, ...document.data() }));
 
-  latestPosts = reset ? pagePosts : [...latestPosts, ...pagePosts];
-  lastPostDocument = pageDocuments.at(-1) || lastPostDocument;
-  hasMorePosts = snapshot.docs.length > postsPageSize;
+  postPages[pageIndex] = {
+    posts: pagePosts,
+    lastDocument: pageDocuments.at(-1) || null,
+    hasNextPage: snapshot.docs.length > listPageSize
+  };
+  currentPostPageIndex = pageIndex;
+  latestPosts = pagePosts;
   setStatus("");
   renderPosts(latestPosts);
 };
 
-const subscribeAnnouncements = () => {
-  onSnapshot(
-    query(collection(db, "announcements"), orderBy("createAt", "desc")),
-    (snapshot) => {
-      latestAnnouncements = snapshot.docs.map((document) => ({ id: document.id, ...document.data() }));
-      renderAnnouncements(latestAnnouncements);
-    },
-    (error) => {
-      if (announcementList) {
-        announcementList.innerHTML = `<li class="post"><p>${escapeHtml(getErrorMessage(error, "全体連絡を読み込めませんでした。"))}</p></li>`;
-      }
+const loadAnnouncements = async ({ reset = false, pageIndex = currentAnnouncementPageIndex } = {}) => {
+  if (reset) {
+    announcementPages = [];
+    latestHeaderAnnouncements = [];
+    latestAnnouncements = [];
+    currentAnnouncementPageIndex = 0;
+    pageIndex = 0;
+  }
+
+  announcementPrevPageButton.disabled = true;
+  announcementNextPageButton.disabled = true;
+
+  const cachedPage = announcementPages[pageIndex];
+  if (cachedPage) {
+    currentAnnouncementPageIndex = pageIndex;
+    latestAnnouncements = cachedPage.announcements;
+    renderAnnouncements(latestAnnouncements);
+    return;
+  }
+
+  const queryParts = [
+    collection(db, "announcements"),
+    orderBy("createAt", "desc"),
+    limit(listPageSize + 1)
+  ];
+
+  if (pageIndex > 0) {
+    const previousPage = announcementPages[pageIndex - 1];
+    if (!previousPage?.lastDocument) {
+      throw new Error("前ページの読み込み位置が見つかりません。");
     }
-  );
+    queryParts.splice(2, 0, startAfter(previousPage.lastDocument));
+  }
+
+  const announcementsQuery = query(...queryParts);
+  const snapshot = await getDocs(announcementsQuery);
+  const pageDocuments = snapshot.docs.slice(0, listPageSize);
+  const pageAnnouncements = pageDocuments.map((document) => ({ id: document.id, ...document.data() }));
+
+  announcementPages[pageIndex] = {
+    announcements: pageAnnouncements,
+    lastDocument: pageDocuments.at(-1) || null,
+    hasNextPage: snapshot.docs.length > listPageSize
+  };
+  if (pageIndex === 0) {
+    const cutoff = getLatestAnnouncementCutoff();
+    latestHeaderAnnouncements = pageAnnouncements
+      .filter((announcement) => {
+        const createAt = toDate(announcement.createAt);
+        return createAt && createAt >= cutoff;
+      })
+      .slice(0, latestAnnouncementLimit);
+  }
+  currentAnnouncementPageIndex = pageIndex;
+  latestAnnouncements = pageAnnouncements;
+  renderAnnouncements(latestAnnouncements);
+};
+
+const subscribeAnnouncements = () => {
+  loadAnnouncements({ reset: true }).catch((error) => {
+    latestHeaderAnnouncements = [];
+    renderLatestAnnouncements(latestHeaderAnnouncements);
+    if (announcementList) {
+      announcementList.innerHTML = `<li class="post"><p>${escapeHtml(getErrorMessage(error, "全体連絡を読み込めませんでした。"))}</p></li>`;
+    }
+    updateAnnouncementPagination();
+  });
 };
 
 const subscribePosts = () => {
@@ -473,11 +651,40 @@ const subscribePosts = () => {
   });
 };
 
-loadMorePostsButton.addEventListener("click", () => {
-  loadPosts().catch((error) => {
-    setStatus(getErrorMessage(error, "追加の投稿を読み込めませんでした。"), true);
-    updateLoadMorePostsButton();
-  });
+postPrevPageButton.addEventListener("click", () => {
+  loadPosts({ pageIndex: currentPostPageIndex - 1 })
+    .then(() => postList.scrollIntoView({ behavior: "smooth", block: "start" }))
+    .catch((error) => {
+      setStatus(getErrorMessage(error, "前のページを読み込めませんでした。"), true);
+      updatePostPagination();
+    });
+});
+
+postNextPageButton.addEventListener("click", () => {
+  loadPosts({ pageIndex: currentPostPageIndex + 1 })
+    .then(() => postList.scrollIntoView({ behavior: "smooth", block: "start" }))
+    .catch((error) => {
+      setStatus(getErrorMessage(error, "次のページを読み込めませんでした。"), true);
+      updatePostPagination();
+    });
+});
+
+announcementPrevPageButton.addEventListener("click", () => {
+  loadAnnouncements({ pageIndex: currentAnnouncementPageIndex - 1 })
+    .then(() => announcementList.scrollIntoView({ behavior: "smooth", block: "start" }))
+    .catch((error) => {
+      setAnnouncementStatus(getErrorMessage(error, "前のページを読み込めませんでした。"), true);
+      updateAnnouncementPagination();
+    });
+});
+
+announcementNextPageButton.addEventListener("click", () => {
+  loadAnnouncements({ pageIndex: currentAnnouncementPageIndex + 1 })
+    .then(() => announcementList.scrollIntoView({ behavior: "smooth", block: "start" }))
+    .catch((error) => {
+      setAnnouncementStatus(getErrorMessage(error, "次のページを読み込めませんでした。"), true);
+      updateAnnouncementPagination();
+    });
 });
 
 toggleAnnouncementFormButton?.addEventListener("click", () => {
@@ -556,6 +763,7 @@ announcementForm?.addEventListener("submit", async (event) => {
   const formData = new FormData(announcementForm);
   const announcement = {
     name: formData.get("announcementName").trim(),
+    subject: formData.get("announcementSubject").trim(),
     message: formData.get("announcementMessage").trim(),
     password: formData.get("announcementPassword")
   };
@@ -582,6 +790,7 @@ announcementForm?.addEventListener("submit", async (event) => {
   try {
     await addDoc(collection(db, "announcements"), {
       name: announcement.name.slice(0, 40),
+      subject: announcement.subject.slice(0, 80),
       message: announcement.message.slice(0, 800),
       createAt: serverTimestamp()
     });
@@ -594,6 +803,7 @@ announcementForm?.addEventListener("submit", async (event) => {
     if (announcementPasswordInput) {
       announcementPasswordInput.value = announcement.password;
     }
+    await loadAnnouncements({ reset: true });
     setAnnouncementStatus("全体連絡を投稿しました。");
   } catch (error) {
     setAnnouncementStatus(getErrorMessage(error, "全体連絡を投稿できませんでした。Firestore Rulesを確認してください。"), true);
@@ -725,6 +935,7 @@ announcementList?.addEventListener("click", async (event) => {
 
   try {
     await deleteDoc(doc(db, "announcements", announcementId));
+    await loadAnnouncements({ reset: true });
     setAnnouncementStatus("全体連絡を削除しました。");
   } catch (error) {
     setAnnouncementStatus(getErrorMessage(error, "全体連絡を削除できませんでした。"), true);

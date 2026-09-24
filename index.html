@@ -3,9 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="京都府八幡市の美濃山小学校体育館で活動するバドミントンクラブ「ひまわり・コスモス・なでしこ」の合同ホームページです。各チームの紹介や練習予定をご案内します。">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://himawariclubyawata-sys.github.io/himawari/">
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
-  <title>ひまわり・コスモス・なでしこ</title>
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="八幡市バドミントンクラブ ひまわり・コスモス・なでしこ">
+  <meta property="og:title" content="八幡市バドミントンクラブ｜ひまわり・コスモス・なでしこ">
+  <meta property="og:description" content="京都府八幡市の美濃山小学校体育館で活動する、ひまわり・コスモス・なでしこの合同ホームページです。">
+  <meta property="og:url" content="https://himawariclubyawata-sys.github.io/himawari/">
+  <meta property="og:image" content="https://himawariclubyawata-sys.github.io/himawari/assets/badminton-hero.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>八幡市バドミントンクラブ｜ひまわり・コスモス・なでしこ</title>
   <link rel="stylesheet" href="css/style.css">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SportsOrganization",
+      "name": "八幡市バドミントンクラブ ひまわり・コスモス・なでしこ",
+      "alternateName": ["ひまわり", "コスモス", "なでしこ"],
+      "url": "https://himawariclubyawata-sys.github.io/himawari/",
+      "description": "京都府八幡市の美濃山小学校体育館で活動する地域のバドミントンクラブです。",
+      "sport": "バドミントン",
+      "location": {
+        "@type": "Place",
+        "name": "八幡市立美濃山小学校体育館",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "欽明台西70",
+          "addressLocality": "八幡市",
+          "addressRegion": "京都府",
+          "addressCountry": "JP"
+        }
+      }
+    }
+  </script>
 </head>
 <body>
   <header class="site-header">
@@ -24,6 +57,10 @@
   </header>
 
   <main id="top">
+    <aside class="latest-announcement" id="latestAnnouncement" data-item-id="TOP-LATEST-ANNOUNCEMENT" aria-live="polite" hidden>
+      <ul class="latest-announcement-list" id="latestAnnouncementList" data-item-id="TOP-LATEST-ANNOUNCEMENT-LIST" aria-label="最新の全体連絡"></ul>
+    </aside>
+
     <section class="hero" data-item-id="TOP-HERO-SECTION" aria-label="ひまわり・コスモス・なでしこ">
       <div class="hero-inner">
         <div class="hero-copy">
@@ -83,6 +120,10 @@
                 </select>
               </label>
               <label>
+                <span class="field-label">件名 <span class="field-requirement is-optional">任意</span></span>
+                <input id="announcementSubject" name="announcementSubject" data-item-id="TOP-ANNOUNCEMENTS-SUBJECT" type="text" maxlength="80" placeholder="空欄の場合は内容の先頭30文字を表示します">
+              </label>
+              <label>
                 <span class="field-label">内容 <span class="field-requirement is-required">必須</span></span>
                 <textarea id="announcementMessage" name="announcementMessage" data-item-id="TOP-ANNOUNCEMENTS-MESSAGE" placeholder="例：本日19時から練習を行います。" required></textarea>
               </label>
@@ -98,8 +139,13 @@
             </form>
           </div>
 
-          <div class="post-list-panel">
-            <ul class="post-list" id="announcementList" data-item-id="TOP-ANNOUNCEMENTS-LIST" aria-live="polite"></ul>
+          <div class="post-list-panel announcement-list-panel">
+            <ul class="post-list announcement-list" id="announcementList" data-item-id="TOP-ANNOUNCEMENTS-LIST" aria-live="polite" aria-label="全体連絡一覧"></ul>
+            <nav class="pagination" id="announcementPagination" data-item-id="TOP-ANNOUNCEMENTS-PAGINATION" aria-label="全体連絡のページ切り替え" hidden>
+              <button class="pagination-button" id="announcementPrevPage" type="button">前へ</button>
+              <span class="pagination-status" id="announcementPageStatus" aria-live="polite"></span>
+              <button class="pagination-button" id="announcementNextPage" type="button">次へ</button>
+            </nav>
           </div>
         </div>
       </div>
@@ -149,7 +195,11 @@
 
           <div class="post-list-panel">
             <ul class="post-list" id="postList" data-item-id="TOP-BOARD-POST-LIST" aria-live="polite"></ul>
-            <button class="button button-secondary load-more-posts" id="loadMorePosts" data-item-id="TOP-BOARD-POST-MORE" type="button" hidden>さらに表示</button>
+            <nav class="pagination" id="postPagination" data-item-id="TOP-BOARD-POST-PAGINATION" aria-label="遅刻連絡のページ切り替え" hidden>
+              <button class="pagination-button" id="postPrevPage" type="button">前へ</button>
+              <span class="pagination-status" id="postPageStatus" aria-live="polite"></span>
+              <button class="pagination-button" id="postNextPage" type="button">次へ</button>
+            </nav>
           </div>
         </div>
 

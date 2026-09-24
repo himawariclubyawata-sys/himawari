@@ -98,6 +98,68 @@
       color: var(--court-dark);
     }
 
+    .latest-announcement {
+      margin-top: 68px;
+      padding: 6px 0;
+      overflow-x: hidden;
+      background: #fff7df;
+      border-bottom: 1px solid rgba(243, 178, 59, 0.4);
+    }
+
+    .latest-announcement-list {
+      width: min(1120px, calc(100% - 32px));
+      display: grid;
+      margin: 0 auto;
+      padding: 0;
+      list-style: none;
+    }
+
+    .latest-announcement-list li {
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .latest-announcement-list a {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #6d4b0d;
+      font-weight: 900;
+    }
+
+    .latest-announcement-list li + li {
+      border-top: 1px solid rgba(243, 178, 59, 0.24);
+    }
+
+    .latest-announcement-list a:hover {
+      color: #3f2a06;
+    }
+
+    .latest-announcement-subject {
+      flex: 1 1 auto;
+      max-width: 100%;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .latest-announcement-date {
+      flex: 0 0 auto;
+      color: #876623;
+      font-size: 0.82rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .latest-announcement:not([hidden]) + .hero {
+      padding-top: 42px;
+    }
+
     .hero {
       min-height: 56vh;
       display: grid;
@@ -475,6 +537,7 @@
     }
 
     .announcements {
+      overflow-x: hidden;
       background: linear-gradient(135deg, #f7fdf9 0%, #eef7f2 100%);
       border-top: 1px solid rgba(31, 138, 112, 0.12);
       border-bottom: 1px solid rgba(31, 138, 112, 0.12);
@@ -495,6 +558,32 @@
 
     .announcement-form-panel {
       display: grid;
+    }
+
+    .announcement-list-panel {
+      grid-column: 1 / -1;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    .post-list.announcement-list {
+      width: 100%;
+      max-width: 100%;
+      max-height: none;
+      overflow: visible;
+    }
+
+    #postList {
+      max-height: none;
+      overflow: visible;
+    }
+
+    .announcement-list .post {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      align-content: start;
     }
 
     .board {
@@ -633,18 +722,52 @@
       gap: 12px;
       max-height: 760px;
       overflow-y: auto;
+      scroll-margin-top: 88px;
       margin: 0;
       padding: 0;
       list-style: none;
     }
 
     .post-list-panel {
+      min-width: 0;
       min-height: 0;
     }
 
-    .load-more-posts {
-      margin-top: 14px;
-      width: 100%;
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .pagination-button {
+      min-width: 82px;
+      min-height: 42px;
+      padding: 0 16px;
+      border: 1px solid rgba(31, 138, 112, 0.3);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--court-dark);
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .pagination-button:hover:not(:disabled) {
+      background: #e8f5ef;
+    }
+
+    .pagination-button:disabled {
+      cursor: default;
+      opacity: 0.4;
+    }
+
+    .pagination-status {
+      min-width: 72px;
+      color: var(--muted);
+      font-weight: 800;
+      text-align: center;
     }
 
     .post {
@@ -666,10 +789,16 @@
       justify-content: space-between;
     }
 
+    .post-header > div {
+      min-width: 0;
+      max-width: 100%;
+    }
+
     .post-title {
       margin: 0;
       font-size: 1.05rem;
       line-height: 1.35;
+      overflow-wrap: anywhere;
     }
 
     .badge {
@@ -688,11 +817,13 @@
       margin: 0;
       color: var(--muted);
       white-space: pre-wrap;
+      overflow-wrap: anywhere;
     }
 
     .post-time {
       color: #71808e;
       font-size: 0.86rem;
+      overflow-wrap: anywhere;
     }
 
     .post-delete {
@@ -908,6 +1039,14 @@
         padding: 86px 0 36px;
       }
 
+      .latest-announcement {
+        margin-top: 64px;
+      }
+
+      .latest-announcement:not([hidden]) + .hero {
+        padding-top: 36px;
+      }
+
       .practice-grid,
       .circle-row,
       .circle-meta,
@@ -963,4 +1102,19 @@
       .contact-box {
         padding: 18px;
       }
+
+      .pagination {
+        gap: 6px;
+      }
+
+      .pagination-button {
+        min-width: 0;
+        flex: 1 1 0;
+        padding: 0 10px;
+      }
+
+      .pagination-status {
+        min-width: 56px;
+      }
+
     }

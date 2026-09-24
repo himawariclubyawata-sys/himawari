@@ -13,6 +13,7 @@ GitHub Pagesで公開するWebサイト本体です。
 | `css/` | スタイルシート。 |
 | `js/` | Firebase連携と画面処理。 |
 | `assets/` | 画像などの静的ファイル。 |
+| `sitemap.xml` | Googleなどの検索エンジンへトップページを案内するサイトマップ。 |
 
 ## 注意
 
